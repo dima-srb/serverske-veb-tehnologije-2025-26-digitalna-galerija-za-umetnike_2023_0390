@@ -16,10 +16,18 @@ class ArtistResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user_id' => $this->user_id,
+            'name' => $this->whenLoaded(
+                'user',
+                fn (): ?string => $this->user?->name,
+            ),
             'bio' => $this->bio,
             'country' => $this->country,
             'website_url' => $this->website_url,
             'social_links' => $this->social_links,
+            'artworks' => ArtworkResource::collection(
+                $this->whenLoaded('artworks')
+            ),
         ];
     }
 }
