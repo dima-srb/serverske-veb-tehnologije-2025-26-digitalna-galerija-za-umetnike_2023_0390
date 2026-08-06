@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
@@ -18,12 +19,23 @@ Route::apiResource('artists', ArtistController::class)->only([
     'show',
 ]);
 
+Route::apiResource('artworks', ArtworkController::class)->only([
+    'index',
+    'show',
+]);
+
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
     Route::patch('/user', [AuthController::class, 'updateProfile']);
 
     Route::apiResource('categories', CategoryController::class)->only([
+        'store',
+        'update',
+        'destroy',
+    ]);
+
+    Route::apiResource('artworks', ArtworkController::class)->only([
         'store',
         'update',
         'destroy',
