@@ -24,6 +24,12 @@ Route::apiResource('artworks', ArtworkController::class)->only([
     'show',
 ]);
 
+Route::get('/categories/{category}/artworks', [ArtworkController::class, 'indexByCategory'])
+    ->name('categories.artworks.index');
+
+Route::get('/artists/{artist}/artworks', [ArtworkController::class, 'indexByArtist'])
+    ->name('artists.artworks.index');
+
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);

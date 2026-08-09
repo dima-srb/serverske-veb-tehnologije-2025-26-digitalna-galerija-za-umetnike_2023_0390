@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ArtworkResource;
 use App\Models\Artist;
 use App\Models\Artwork;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,6 +79,26 @@ class ArtworkController extends Controller
             ]),
             'artworks' => ArtworkResource::collection($artworks->getCollection()),
         ]);
+    }
+
+    /**
+     * Display artworks that belong to the specified category.
+     */
+    public function indexByCategory(Request $request, Category $category): JsonResponse
+    {
+        $request->merge(['category_id' => $category->id]);
+
+        return $this->index($request);
+    }
+
+    /**
+     * Display artworks that belong to the specified artist.
+     */
+    public function indexByArtist(Request $request, Artist $artist): JsonResponse
+    {
+        $request->merge(['artist_id' => $artist->id]);
+
+        return $this->index($request);
     }
 
     /**
@@ -317,7 +338,7 @@ class ArtworkController extends Controller
 
         $storagePath = ltrim(substr($urlPath, strlen($publicStoragePrefix)), '/');
 
-        if (! str_starts_with($storagePath, self::IMAGE_DIRECTORY . '/')) {
+        if (! str_starts_with($storagePath, self::IMAGE_DIRECTORY.'/')) {
             return;
         }
 

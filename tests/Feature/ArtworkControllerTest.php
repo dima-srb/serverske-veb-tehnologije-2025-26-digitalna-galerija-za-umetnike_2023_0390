@@ -69,6 +69,46 @@ it('lists artworks with filters search and pagination', function () {
         ->assertJsonPath('artworks.0.category.id', $painting->id);
 });
 
+it('lists artworks for a category using the public nested route', function () {
+    $category = Category::factory()->create();
+    $otherCategory = Category::factory()->create();
+
+    Artwork::factory()->count(2)->create(['category_id' => $category->id]);
+    Artwork::factory()->create(['category_id' => $otherCategory->id]);
+
+    $response = $this->getJson("/api/categories/{$category->id}/artworks?per_page=1");
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('count', 1)
+        ->assertJsonPath('total', 2)
+        ->assertJsonPath('per_page', 1)
+        ->assertJsonPath('filters.category_id', $category->id);
+
+    expect(collect($response->json('artworks'))->pluck('category_id')->unique()->all())
+        ->toBe([$category->id]);
+});
+
+it('lists artworks for an artist using the public nested route', function () {
+    $artist = Artist::factory()->create();
+    $otherArtist = Artist::factory()->create();
+
+    Artwork::factory()->count(2)->create(['artist_id' => $artist->id]);
+    Artwork::factory()->create(['artist_id' => $otherArtist->id]);
+
+    $response = $this->getJson("/api/artists/{$artist->id}/artworks?per_page=1");
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('count', 1)
+        ->assertJsonPath('total', 2)
+        ->assertJsonPath('per_page', 1)
+        ->assertJsonPath('filters.artist_id', $artist->id);
+
+    expect(collect($response->json('artworks'))->pluck('artist_id')->unique()->all())
+        ->toBe([$artist->id]);
+});
+
 it('allows everyone to view an artwork', function () {
     $artwork = Artwork::factory()->create(['title' => 'Public Artwork']);
 
