@@ -28,6 +28,11 @@ class ArtworkController extends Controller
             'search' => ['sometimes', 'string', 'max:255'],
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
             'artist_id' => ['sometimes', 'integer', 'exists:artists,id'],
+            'sort_by' => [
+                'sometimes',
+                Rule::in(['id', 'title', 'creation_date', 'created_at', 'updated_at']),
+            ],
+            'sort_direction' => ['sometimes', Rule::in(['asc', 'desc'])],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
             'page' => ['sometimes', 'integer', 'min:1'],
         ]);
@@ -61,8 +66,16 @@ class ArtworkController extends Controller
             $query->where('artist_id', $validated['artist_id']);
         }
 
+        $sortBy = $validated['sort_by'] ?? 'created_at';
+        $sortDirection = $validated['sort_direction'] ?? 'desc';
+
+        $query->orderBy($sortBy, $sortDirection);
+
+        if ($sortBy !== 'id') {
+            $query->orderBy('id', $sortDirection);
+        }
+
         $artworks = $query
-            ->latest()
             ->paginate((int) ($validated['per_page'] ?? 10))
             ->withQueryString();
 
@@ -76,6 +89,8 @@ class ArtworkController extends Controller
                 'search',
                 'category_id',
                 'artist_id',
+                'sort_by',
+                'sort_direction',
             ]),
             'artworks' => ArtworkResource::collection($artworks->getCollection()),
         ]);

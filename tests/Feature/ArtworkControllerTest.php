@@ -69,6 +69,26 @@ it('lists artworks with filters search and pagination', function () {
         ->assertJsonPath('artworks.0.category.id', $painting->id);
 });
 
+it('sorts artworks by the requested field and direction', function () {
+    Artwork::factory()->create(['title' => 'Zebra']);
+    Artwork::factory()->create(['title' => 'Amber']);
+    Artwork::factory()->create(['title' => 'Monet']);
+
+    $this->getJson('/api/artworks?sort_by=title&sort_direction=asc')
+        ->assertOk()
+        ->assertJsonPath('filters.sort_by', 'title')
+        ->assertJsonPath('filters.sort_direction', 'asc')
+        ->assertJsonPath('artworks.0.title', 'Amber')
+        ->assertJsonPath('artworks.1.title', 'Monet')
+        ->assertJsonPath('artworks.2.title', 'Zebra');
+});
+
+it('rejects unsupported artwork sorting options', function () {
+    $this->getJson('/api/artworks?sort_by=description&sort_direction=sideways')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['sort_by', 'sort_direction']);
+});
+
 it('lists artworks for a category using the public nested route', function () {
     $category = Category::factory()->create();
     $otherCategory = Category::factory()->create();
