@@ -1,0 +1,2302 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "E-Gallery API",
+        "description": "REST API za digitalnu galeriju umetnickih dela. Javne rute omogucavaju pregled umetnika, kategorija, lokalnih radova i dela iz javnih muzejskih API-ja. Zasticene rute koriste Laravel Sanctum Bearer tokene.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API base path"
+        }
+    ],
+    "paths": {
+        "/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Registracija visitor ili artist korisnika",
+                "description": "Admin registracija nije dozvoljena. Artist moze poslati i opciona profilna polja.",
+                "operationId": "registerUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Korisnik je registrovan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Prijava korisnika",
+                "operationId": "loginUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "ana@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Uspesna prijava",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Pogresni kredencijali",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Odjava trenutno prijavljenog korisnika",
+                "operationId": "logoutUser",
+                "responses": {
+                    "200": {
+                        "description": "Uspesna odjava",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Profil trenutno prijavljenog korisnika",
+                "operationId": "getCurrentUser",
+                "responses": {
+                    "200": {
+                        "description": "Korisnicki profil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Azuriranje korisnickog profila",
+                "description": "Svi korisnici mogu promeniti name. Samo artist moze poslati artist profilna polja.",
+                "operationId": "updateCurrentUser",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateProfileRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil je azuriran",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile updated successfully."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/artists": {
+            "get": {
+                "tags": [
+                    "Artists"
+                ],
+                "summary": "Lista umetnika sortirana po imenu",
+                "operationId": "listArtists",
+                "responses": {
+                    "200": {
+                        "description": "Lista umetnika",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "artists": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Artist"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/artists/{artist}": {
+            "get": {
+                "tags": [
+                    "Artists"
+                ],
+                "summary": "Pregled umetnika i njegovih dela",
+                "operationId": "showArtist",
+                "parameters": [
+                    {
+                        "name": "artist",
+                        "in": "path",
+                        "description": "Artist ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalji umetnika",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "artist": {
+                                            "$ref": "#/components/schemas/ArtistDetails"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Umetnik nije pronadjen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Lista kategorija sortirana po nazivu",
+                "operationId": "listCategories",
+                "responses": {
+                    "200": {
+                        "description": "Lista kategorija",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 6
+                                        },
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Category"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Kreiranje kategorije",
+                "description": "Samo administrator moze kreirati kategoriju.",
+                "operationId": "createCategory",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CategoryCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Kategorija je kreirana",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category created successfully."
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Samo admin ima pristup",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/categories/{category}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Pregled jedne kategorije",
+                "operationId": "showCategory",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "Category ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalji kategorije",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kategorija nije pronadjena",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Azuriranje kategorije putem PUT zahteva",
+                "description": "Samo administrator moze azurirati kategoriju. Kontroler prihvata parcijalni payload.",
+                "operationId": "replaceCategory",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "Category ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CategoryWriteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kategorija je azurirana",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Samo admin ima pristup",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kategorija nije pronadjena",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Brisanje kategorije",
+                "description": "Samo administrator moze obrisati praznu kategoriju.",
+                "operationId": "deleteCategory",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "Category ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kategorija je obrisana",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Samo admin ima pristup",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kategorija nije pronadjena",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Kategorija sadrzi umetnicka dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Parcijalno azuriranje kategorije",
+                "description": "Samo administrator moze azurirati kategoriju.",
+                "operationId": "updateCategory",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "Category ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CategoryWriteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kategorija je azurirana",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "category": {
+                                            "$ref": "#/components/schemas/Category"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Samo admin ima pristup",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kategorija nije pronadjena",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/artworks": {
+            "get": {
+                "tags": [
+                    "Artworks"
+                ],
+                "summary": "Lista umetnickih dela",
+                "description": "Javna ruta sa pretragom, filterima, sortiranjem i paginacijom.",
+                "operationId": "listArtworks",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/ArtworkSearch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkCategoryId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkArtistId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSortBy"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSortDirection"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkPerPage"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginirana lista dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArtworkListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Artworks"
+                ],
+                "summary": "Kreiranje umetnickog dela",
+                "description": "Samo artist moze kreirati delo. Poslati image fajl ili image_url, ali ne oba. artist_id se odredjuje iz tokena.",
+                "operationId": "createArtwork",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArtworkCreateUploadRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArtworkCreateUrlRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Delo je kreirano",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "artwork": {
+                                            "$ref": "#/components/schemas/Artwork"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Samo artist moze kreirati delo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/categories/{category}/artworks": {
+            "get": {
+                "tags": [
+                    "Categories",
+                    "Artworks"
+                ],
+                "summary": "Umetnicka dela jedne kategorije",
+                "operationId": "listCategoryArtworks",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "Category ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSearch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkArtistId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSortBy"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSortDirection"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkPerPage"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dela iz kategorije",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArtworkListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kategorija nije pronadjena",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/artists/{artist}/artworks": {
+            "get": {
+                "tags": [
+                    "Artists",
+                    "Artworks"
+                ],
+                "summary": "Umetnicka dela jednog umetnika",
+                "operationId": "listArtistArtworks",
+                "parameters": [
+                    {
+                        "name": "artist",
+                        "in": "path",
+                        "description": "Artist ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSearch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkCategoryId"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSortBy"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkSortDirection"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ArtworkPerPage"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dela umetnika",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArtworkListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Umetnik nije pronadjen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/artworks/{artwork}": {
+            "get": {
+                "tags": [
+                    "Artworks"
+                ],
+                "summary": "Pregled jednog umetnickog dela",
+                "operationId": "showArtwork",
+                "parameters": [
+                    {
+                        "name": "artwork",
+                        "in": "path",
+                        "description": "Artwork ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalji dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "artwork": {
+                                            "$ref": "#/components/schemas/Artwork"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Delo nije pronadjeno",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Artworks"
+                ],
+                "summary": "Azuriranje dela putem PUT zahteva",
+                "description": "Delo moze azurirati samo artist koji je njegov vlasnik. Image i image_url se ne mogu poslati zajedno.",
+                "operationId": "replaceArtwork",
+                "parameters": [
+                    {
+                        "name": "artwork",
+                        "in": "path",
+                        "description": "Artwork ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArtworkUpdateUploadRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArtworkUpdateUrlRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Delo je azurirano",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "artwork": {
+                                            "$ref": "#/components/schemas/Artwork"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Korisnik nije vlasnik dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Delo nije pronadjeno",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Artworks"
+                ],
+                "summary": "Brisanje umetnickog dela",
+                "description": "Delo moze obrisati samo artist koji je njegov vlasnik. Lokalno uploadovana slika se takodje brise.",
+                "operationId": "deleteArtwork",
+                "parameters": [
+                    {
+                        "name": "artwork",
+                        "in": "path",
+                        "description": "Artwork ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delo je obrisano",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Korisnik nije vlasnik dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Delo nije pronadjeno",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Artworks"
+                ],
+                "summary": "Parcijalno azuriranje umetnickog dela",
+                "description": "Delo moze azurirati samo artist koji je njegov vlasnik. Image i image_url se ne mogu poslati zajedno.",
+                "operationId": "updateArtwork",
+                "parameters": [
+                    {
+                        "name": "artwork",
+                        "in": "path",
+                        "description": "Artwork ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArtworkUpdateUploadRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArtworkUpdateUrlRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Delo je azurirano",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "artwork": {
+                                            "$ref": "#/components/schemas/Artwork"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Korisnik nije prijavljen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Korisnik nije vlasnik dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Delo nije pronadjeno",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/external/artworks/art-institute": {
+            "get": {
+                "tags": [
+                    "External Artworks"
+                ],
+                "summary": "Javna dela iz Art Institute of Chicago API-ja",
+                "description": "Vraca normalizovane public-domain rezultate bez API kljuca.",
+                "operationId": "listArtInstituteArtworks",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/ExternalSearch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ExternalPerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eksterna umetnicka dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExternalArtworkListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Eksterni servis nije dostupan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExternalServiceError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/external/artworks/cleveland": {
+            "get": {
+                "tags": [
+                    "External Artworks"
+                ],
+                "summary": "Javna dela iz Cleveland Museum of Art API-ja",
+                "description": "Vraca normalizovane CC0 rezultate sa slikama bez API kljuca.",
+                "operationId": "listClevelandArtworks",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/ExternalSearch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ExternalPerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eksterna umetnicka dela",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExternalArtworkListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validaciona greska",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Eksterni servis nije dostupan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExternalServiceError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "MessageResponse": {
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully."
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid."
+                    },
+                    "errors": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ExternalServiceError": {
+                "required": [
+                    "message",
+                    "source"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "External artwork service is currently unavailable."
+                    },
+                    "source": {
+                        "type": "string",
+                        "example": "Art Institute of Chicago"
+                    }
+                },
+                "type": "object"
+            },
+            "Artist": {
+                "required": [
+                    "id",
+                    "user_id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Claude Monet",
+                        "nullable": true
+                    },
+                    "bio": {
+                        "type": "string",
+                        "example": "French painter and founder of Impressionism.",
+                        "nullable": true
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "France",
+                        "nullable": true
+                    },
+                    "website_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://example.com/monet",
+                        "nullable": true
+                    },
+                    "social_links": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://instagram.com/artist"
+                        },
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Ana Artist"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "ana@example.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "artist",
+                        "enum": [
+                            "admin",
+                            "artist",
+                            "visitor"
+                        ]
+                    },
+                    "artist": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Artist"
+                            }
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Category": {
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Painting"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Paintings made with traditional or contemporary techniques.",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Artwork": {
+                "required": [
+                    "id",
+                    "artist_id",
+                    "category_id",
+                    "title",
+                    "image_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "artist_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Water Lilies"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "A view of the artist's garden pond.",
+                        "nullable": true
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "http://localhost:8000/storage/artworks/water-lilies.jpg"
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "example": "1906",
+                        "nullable": true
+                    },
+                    "dimensions": {
+                        "type": "string",
+                        "example": "89.9 x 94.1 cm",
+                        "nullable": true
+                    },
+                    "artist": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Artist"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "category": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Category"
+                            }
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ArtistDetails": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Artist"
+                    },
+                    {
+                        "properties": {
+                            "artworks": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Artwork"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "AuthResponse": {
+                "required": [
+                    "data",
+                    "access_token",
+                    "token_type"
+                ],
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "access_token": {
+                        "type": "string",
+                        "example": "1|plain-text-token"
+                    },
+                    "token_type": {
+                        "type": "string",
+                        "example": "Bearer"
+                    }
+                },
+                "type": "object"
+            },
+            "RegisterRequest": {
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "role"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Ana Artist",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "ana@example.com",
+                        "maxLength": 255
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password123",
+                        "minLength": 8
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "artist",
+                        "enum": [
+                            "artist",
+                            "visitor"
+                        ]
+                    },
+                    "bio": {
+                        "type": "string",
+                        "example": "Contemporary visual artist.",
+                        "nullable": true,
+                        "maxLength": 5000
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "Serbia",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "website_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "social_links": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateProfileRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Ana Updated",
+                        "maxLength": 255
+                    },
+                    "bio": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 5000
+                    },
+                    "country": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "website_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "social_links": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CategoryWriteRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Sculpture",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Three-dimensional artworks.",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CategoryCreateRequest": {
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Sculpture",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Three-dimensional artworks.",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ArtworkCreateUrlRequest": {
+                "required": [
+                    "category_id",
+                    "title",
+                    "image_url"
+                ],
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "My Artwork",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "example": "2026",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "dimensions": {
+                        "type": "string",
+                        "example": "120 x 80 cm",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://example.com/artwork.jpg",
+                        "maxLength": 2048
+                    }
+                },
+                "type": "object"
+            },
+            "ArtworkCreateUploadRequest": {
+                "required": [
+                    "category_id",
+                    "title",
+                    "image"
+                ],
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "My Uploaded Artwork",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "example": "2026",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "dimensions": {
+                        "type": "string",
+                        "example": "120 x 80 cm",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "image": {
+                        "description": "JPG, JPEG, PNG ili WEBP; maksimalno 5 MB",
+                        "type": "string",
+                        "format": "binary"
+                    }
+                },
+                "type": "object"
+            },
+            "ArtworkUpdateUrlRequest": {
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Updated Artwork",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "dimensions": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://example.com/replacement.jpg",
+                        "maxLength": 2048
+                    }
+                },
+                "type": "object"
+            },
+            "ArtworkUpdateUploadRequest": {
+                "properties": {
+                    "category_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Updated Artwork",
+                        "maxLength": 255
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "dimensions": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 255
+                    },
+                    "image": {
+                        "description": "Nova JPG, JPEG, PNG ili WEBP slika; maksimalno 5 MB",
+                        "type": "string",
+                        "format": "binary"
+                    }
+                },
+                "type": "object"
+            },
+            "ArtworkListResponse": {
+                "required": [
+                    "count",
+                    "total",
+                    "per_page",
+                    "current_page",
+                    "last_page",
+                    "filters",
+                    "artworks"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 42
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "filters": {
+                        "type": "object"
+                    },
+                    "artworks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Artwork"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ExternalArtwork": {
+                "properties": {
+                    "external_id": {
+                        "type": "integer",
+                        "example": 16568,
+                        "nullable": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Water Lilies",
+                        "nullable": true
+                    },
+                    "artist": {
+                        "type": "string",
+                        "example": "Claude Monet",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "creation_date": {
+                        "type": "string",
+                        "example": "1906",
+                        "nullable": true
+                    },
+                    "dimensions": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "medium": {
+                        "type": "string",
+                        "example": "Oil on canvas",
+                        "nullable": true
+                    },
+                    "category": {
+                        "type": "string",
+                        "example": "Painting",
+                        "nullable": true
+                    },
+                    "department": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "source_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "is_public_domain": {
+                        "type": "boolean",
+                        "example": true,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ExternalArtworkListResponse": {
+                "required": [
+                    "source",
+                    "source_url",
+                    "count",
+                    "total",
+                    "per_page",
+                    "current_page",
+                    "last_page",
+                    "artworks"
+                ],
+                "properties": {
+                    "source": {
+                        "type": "string",
+                        "example": "Art Institute of Chicago"
+                    },
+                    "source_url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "search": {
+                        "type": "string",
+                        "example": "monet",
+                        "nullable": true
+                    },
+                    "artworks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExternalArtwork"
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "parameters": {
+            "ArtworkSearch": {
+                "name": "search",
+                "in": "query",
+                "description": "Pretraga po delu, umetniku, kategoriji ili datumu",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "example": "monet",
+                    "maxLength": 255
+                }
+            },
+            "ArtworkCategoryId": {
+                "name": "category_id",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "example": 1
+                }
+            },
+            "ArtworkArtistId": {
+                "name": "artist_id",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "example": 1
+                }
+            },
+            "ArtworkSortBy": {
+                "name": "sort_by",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "default": "created_at",
+                    "enum": [
+                        "id",
+                        "title",
+                        "creation_date",
+                        "created_at",
+                        "updated_at"
+                    ]
+                }
+            },
+            "ArtworkSortDirection": {
+                "name": "sort_direction",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "default": "desc",
+                    "enum": [
+                        "asc",
+                        "desc"
+                    ]
+                }
+            },
+            "ArtworkPerPage": {
+                "name": "per_page",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "default": 10,
+                    "maximum": 50,
+                    "minimum": 1
+                }
+            },
+            "Page": {
+                "name": "page",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "default": 1,
+                    "minimum": 1
+                }
+            },
+            "ExternalSearch": {
+                "name": "search",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "example": "landscape",
+                    "nullable": true,
+                    "maxLength": 255
+                }
+            },
+            "ExternalPerPage": {
+                "name": "per_page",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "default": 10,
+                    "maximum": 20,
+                    "minimum": 1
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Uneti token dobijen kroz /register ili /login. Authorization header: Bearer {token}",
+                "bearerFormat": "Sanctum token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Registracija, prijava i odjava"
+        },
+        {
+            "name": "Users",
+            "description": "Profil trenutno prijavljenog korisnika"
+        },
+        {
+            "name": "Artists",
+            "description": "Javni pregled umetnika"
+        },
+        {
+            "name": "Categories",
+            "description": "Pregled i administratorsko upravljanje kategorijama"
+        },
+        {
+            "name": "Artworks",
+            "description": "Pregled, pretraga, filtriranje i upravljanje umetnickim delima"
+        },
+        {
+            "name": "External Artworks",
+            "description": "Javna umetnicka dela iz eksternih muzejskih API-ja"
+        }
+    ]
+}
