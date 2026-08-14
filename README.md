@@ -1,59 +1,236 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# eGallery API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+eGallery je REST API aplikacija namenjena umetnicima koji žele da kreiraju digitalnu galeriju i predstave svoje radove publici. Sistem omogućava upravljanje korisničkim i umetničkim profilima, kategorijama i umetničkim delima, pretragu i filtriranje galerije, upload slika i preuzimanje podataka sa javnih muzejskih API-ja.
 
-## About Laravel
+Projekat je razvijen u PHP-u korišćenjem Laravel 12 radnog okvira, MySQL baze podataka, Eloquent ORM-a, Laravel Sanctum autentifikacije i OpenAPI/Swagger dokumentacije.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funkcionalnosti
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- registracija posetioca ili umetnika i prijavljivanje pomoću Bearer tokena;
+- uloge `admin`, `artist` i `visitor`;
+- pregled i ažuriranje korisničkog profila;
+- kreiranje i ažuriranje dodatnih podataka umetničkog profila;
+- javni pregled svih umetnika i pojedinačnog umetnika;
+- javni pregled kategorija, uz administratorsko kreiranje, ažuriranje i brisanje;
+- javni pregled svih umetničkih dela i pojedinačnog dela;
+- pretraga, paginacija, filtriranje po umetniku i kategoriji i sortiranje umetničkih dela;
+- pregled umetničkih dela određene kategorije ili umetnika preko ugnježdenih ruta;
+- kreiranje umetničkog dela od strane umetnika;
+- ažuriranje i brisanje dela samo od strane umetnika koji je njegov vlasnik;
+- slanje slike kao lokalnog fajla ili zadavanje udaljenog URL-a;
+- preuzimanje umetničkih dela sa javnih API-ja Art Institute of Chicago i Cleveland Museum of Art;
+- interaktivna Swagger dokumentacija celog API-ja;
+- seederi sa poznatim umetnicima, stvarnim umetničkim delima i demonstracionim podacima.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Sistemski zahtevi
 
-## Learning Laravel
+Za lokalno pokretanje potrebno je instalirati:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- PHP 8.2 ili noviji sa potrebnim Laravel ekstenzijama i `pdo_mysql` ekstenzijom;
+- Composer;
+- MySQL ili kompatibilnu MariaDB bazu;
+- Node.js i npm;
+- Git.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Preuzimanje projekta
 
-## Laravel Sponsors
+Klonirajte repozitorijum i pređite u direktorijum projekta:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone repo_url
+cd egallery
+```
 
-### Premium Partners
+Ako projekat već postoji na lokalnoj mašini, najnovije izmene mogu se preuzeti sledećim komandama:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+git checkout main
+git pull origin main
+composer install
+npm install
+php artisan migrate
+php artisan l5-swagger:generate
+npm run build
+```
 
-## Contributing
+Pre pokretanja `git pull` komande potrebno je sačuvati ili commitovati sopstvene lokalne izmene kako ne bi došlo do konflikta.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Instalacija projekta
 
-## Code of Conduct
+Instalirajte PHP i JavaScript zavisnosti:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer install
+npm install
+```
 
-## Security Vulnerabilities
+Napravite lokalnu `.env` datoteku na osnovu priloženog primera. Na Windows sistemu može se koristiti:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```powershell
+Copy-Item .env.example .env
+```
 
-## License
+Na Linux i macOS sistemima koristi se:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+cp .env.example .env
+```
+
+Zatim generišite aplikacioni ključ:
+
+```bash
+php artisan key:generate
+```
+
+## Podešavanje baze podataka
+
+U MySQL-u kreirajte praznu bazu podataka:
+
+```sql
+CREATE DATABASE egallery CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+U `.env` datoteci podesite konekciju prema lokalnom MySQL okruženju:
+
+```env
+APP_NAME=eGallery
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=egallery
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Pokrenite migracije i seedere:
+
+```bash
+php artisan migrate --seed
+```
+
+Ako je potrebno potpuno obrisati razvojnu bazu i ponovo kreirati sve tabele i demonstracione podatke, može se koristiti sledeća komanda. Ona briše sve postojeće podatke iz konfigurisane baze, pa je namenjena isključivo lokalnom razvojnom okruženju:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+## Podešavanje slika i Swagger dokumentacije
+
+Kreirajte simboličku vezu preko koje će lokalno uploadovane slike biti javno dostupne:
+
+```bash
+php artisan storage:link
+```
+
+Generišite aktuelnu OpenAPI dokumentaciju:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+## Pokretanje aplikacije
+
+API server se može pokrenuti komandom:
+
+```bash
+php artisan serve
+```
+
+Aplikacija će podrazumevano biti dostupna na adresi:
+
+```text
+http://127.0.0.1:8000
+```
+
+Osnovna adresa API-ja je:
+
+```text
+http://127.0.0.1:8000/api
+```
+
+Swagger dokumentacija dostupna je na adresi:
+
+```text
+http://127.0.0.1:8000/api/documentation
+```
+
+Ako se radi i sa Vite resursima, u drugom terminalu može se pokrenuti:
+
+```bash
+npm run dev
+```
+
+Laravel server, Vite razvojni server i queue worker mogu se zajedno pokrenuti Composer skriptom:
+
+```bash
+composer run dev
+```
+
+## Demonstracioni korisnici
+
+Nakon izvršavanja seedera dostupni su sledeći nalozi:
+
+| Uloga         | E-mail                           | Lozinka    |
+| ------------- | -------------------------------- | ---------- |
+| Administrator | `admin@egallery.test`            | `password` |
+| Umetnik       | `vincent.van.gogh@egallery.test` | `password` |
+| Umetnik       | `claude.monet@egallery.test`     | `password` |
+| Umetnik       | `demo.artist.one@egallery.test`  | `password` |
+
+Ovi kredencijali namenjeni su samo lokalnom razvoju i demonstraciji aplikacije.
+
+## Autentifikacija API zahteva
+
+Korisnik se prijavljuje slanjem `POST /api/login` zahteva. Dobijeni token se kod zaštićenih ruta šalje u HTTP zaglavlju:
+
+```http
+Authorization: Bearer <token>
+Accept: application/json
+```
+
+Kod slanja slike kao fajla zahtev za kreiranje umetničkog dela mora biti tipa `multipart/form-data`. Kada se koristi udaljena slika, umesto fajla šalje se URL predviđenim poljem. Zahtev mora sadržati samo jedan od ova dva izvora slike.
+
+## Glavne grupe API ruta
+
+- `/api/register`, `/api/login` i `/api/logout` služe za autentifikaciju;
+- `/api/user` omogućava pregled i ažuriranje profila prijavljenog korisnika;
+- `/api/artists` omogućava javni pregled umetnika;
+- `/api/categories` omogućava pregled kategorija i administratorsko upravljanje;
+- `/api/artworks` omogućava pregled galerije i upravljanje umetničkim delima;
+- `/api/categories/{id}/artworks` vraća dela određene kategorije;
+- `/api/artists/{id}/artworks` vraća dela određenog umetnika;
+- `/api/external/artworks/art-institute` i `/api/external/artworks/cleveland` preuzimaju podatke sa javnih API-ja.
+
+Potpuni parametri zahteva, filteri, pravila validacije i primeri odgovora nalaze se u Swagger dokumentaciji.
+
+## Testiranje
+
+Kompletan skup automatizovanih testova pokreće se komandom:
+
+```bash
+php artisan test
+```
+
+Alternativno se može koristiti Composer skripta:
+
+```bash
+composer test
+```
+
+## Korisne razvojne komande
+
+Nakon izmene ruta, konfiguracije ili Swagger anotacija mogu se koristiti:
+
+```bash
+php artisan optimize:clear
+php artisan l5-swagger:generate
+composer dump-autoload
+```
+
+Za pregled svih registrovanih ruta koristi se:
+
+```bash
+php artisan route:list
+```
